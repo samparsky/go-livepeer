@@ -46,7 +46,6 @@ const HLSWaitInterval = time.Second
 const HLSBufferCap = uint(43200) //12 hrs assuming 1s segment
 const HLSBufferWindow = uint(5)
 
-const SegLen = 4 * time.Second
 const HLSUnsubWorkerFreq = time.Second * 5
 const BroadcastRetry = 15 * time.Second
 
@@ -303,6 +302,11 @@ func gotRTMPStreamHandler(s *LivepeerServer) func(url *url.URL, rtmpStrm stream.
 					seg.Name = uri // hijack seg.Name to convey the uploaded URI
 				}
 				err = cpl.InsertHLSSegment(hlsStrmID, seg.SeqNo, uri, seg.Duration)
+				if monitor.Enabled {
+					mid, _ := hlsStrmID.ManifestIDFromStreamID()
+					monitor.LogSourceSegmentAppeared(nonce, seg.SeqNo, mid.String(), vProfile.Name)
+					glog.V(6).Infof("Appeared segment %d", seg.SeqNo)
+				}
 				if err != nil {
 					glog.Errorf("Error inserting segment %d: %v", seg.SeqNo, err)
 					if monitor.Enabled {
@@ -386,6 +390,9 @@ func gotRTMPStreamHandler(s *LivepeerServer) func(url *url.URL, rtmpStrm stream.
 							// hoist this out so we only do it once
 							sid, _ := core.MakeStreamID(hlsStrmID.GetVideoID(), sess.Profiles[i].Name)
 							err = cpl.InsertHLSSegment(sid, seg.SeqNo, url, seg.Duration)
+							if monitor.Enabled {
+								monitor.LogTranscodedSegmentAppeared(nonce, seg.SeqNo, currentJob.Profiles[i].Name)
+							}
 							if err != nil {
 								errFunc("Playlist", url, err)
 								return
@@ -414,7 +421,7 @@ func gotRTMPStreamHandler(s *LivepeerServer) func(url *url.URL, rtmpStrm stream.
 
 			segOptions := segmenter.SegmenterOptions{
 				StartSeq:  startSeq,
-				SegLength: SegLen,
+				SegLength: core.SegLen * time.Second,
 			}
 			err := s.RTMPSegmenter.SegmentRTMPToHLS(context.Background(), rtmpStrm, hlsStrm, segOptions)
 			if err != nil {

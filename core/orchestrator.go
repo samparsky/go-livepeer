@@ -19,6 +19,7 @@ import (
 	"github.com/livepeer/go-livepeer/drivers"
 	"github.com/livepeer/go-livepeer/eth"
 	ethTypes "github.com/livepeer/go-livepeer/eth/types"
+	"github.com/livepeer/go-livepeer/monitor"
 	"github.com/livepeer/go-livepeer/net"
 
 	ffmpeg "github.com/livepeer/lpms/ffmpeg"
@@ -26,6 +27,8 @@ import (
 )
 
 const TranscodeLoopTimeout = 10 * time.Minute
+
+const SegLen = 4
 
 // Transcoder / orchestrator RPC interface implementation
 type orchestrator struct {
@@ -226,8 +229,9 @@ func (n *LivepeerNode) transcodeSeg(config transcodeConfig, seg *stream.HLSSegme
 	n.tcoderMutex.RUnlock()
 
 	var url string
+	_, isLocal := transcoder.(*LocalTranscoder)
 	// Small optimization: serve from disk for local transcoding
-	if _, ok := transcoder.(*LocalTranscoder); ok {
+	if isLocal {
 		url = fname
 	} else if drivers.IsOwnExternal(seg.Name) {
 		// We're using a remote TC and segment is already in our own OS
@@ -242,6 +246,11 @@ func (n *LivepeerNode) transcodeSeg(config transcodeConfig, seg *stream.HLSSegme
 			return terr(err)
 		}
 		seg.Name = url
+	}
+	if isLocal && monitor.Enabled {
+		sid := StreamID(config.StrmID)
+		mid, _ := sid.ManifestIDFromStreamID()
+		monitor.LogSegmentTranscodeStarting(seg.SeqNo, mid.String(), sid.GetRendition())
 	}
 
 	//Do the transcoding
@@ -258,6 +267,11 @@ func (n *LivepeerNode) transcodeSeg(config transcodeConfig, seg *stream.HLSSegme
 	}
 	tProfileData := make(map[ffmpeg.VideoProfile][]byte, 0)
 	glog.V(common.DEBUG).Infof("Transcoding of segment %v took %v", seg.SeqNo, time.Since(start))
+	if isLocal && monitor.Enabled {
+		sid := StreamID(config.StrmID)
+		mid, _ := sid.ManifestIDFromStreamID()
+		monitor.LogSegmentTranscodeEnded(seg.SeqNo, mid.String(), sid.GetRendition())
+	}
 
 	// Prepare the result object
 	var tr TranscodeResult
