@@ -64,25 +64,23 @@ func sendLoop(inCh chan *event) {
 	}
 }
 
-func LogSegmentTranscodeStarting(seqNo uint64, manifestID, profile string) {
+func LogSegmentTranscodeStarting(seqNo uint64, manifestID string) {
 	glog.Infof("Logging SegmentTranscodeStarting...")
 
 	props := map[string]interface{}{
 		"seqNo":      seqNo,
 		"manifestID": manifestID,
-		"profile":    profile,
 	}
 
 	sendPost("SegmentTranscodeStarting", 0, props)
 }
 
-func LogSegmentTranscodeEnded(seqNo uint64, manifestID, profile string) {
+func LogSegmentTranscodeEnded(seqNo uint64, manifestID string) {
 	glog.Infof("Logging SegmentTranscodeEnded...")
 
 	props := map[string]interface{}{
 		"seqNo":      seqNo,
 		"manifestID": manifestID,
-		"profile":    profile,
 	}
 
 	sendPost("SegmentTranscodeEnded", 0, props)

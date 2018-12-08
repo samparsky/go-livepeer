@@ -391,7 +391,7 @@ func gotRTMPStreamHandler(s *LivepeerServer) func(url *url.URL, rtmpStrm stream.
 							sid, _ := core.MakeStreamID(hlsStrmID.GetVideoID(), sess.Profiles[i].Name)
 							err = cpl.InsertHLSSegment(sid, seg.SeqNo, url, seg.Duration)
 							if monitor.Enabled {
-								monitor.LogTranscodedSegmentAppeared(nonce, seg.SeqNo, currentJob.Profiles[i].Name)
+								monitor.LogTranscodedSegmentAppeared(nonce, seg.SeqNo, sess.Profiles[i].Name)
 							}
 							if err != nil {
 								errFunc("Playlist", url, err)
