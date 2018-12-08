@@ -28,7 +28,7 @@ import (
 
 const TranscodeLoopTimeout = 10 * time.Minute
 
-const SegLen = 4
+const SegLen = 2
 
 // Transcoder / orchestrator RPC interface implementation
 type orchestrator struct {
