@@ -42,6 +42,10 @@ type StubClient struct {
 	ProcessHistoricalUnbondError error
 }
 
+type stubTranscoder struct {
+	ServiceURI string
+}
+
 func (e *StubClient) Setup(password string, gasLimit uint64, gasPrice *big.Int) error { return nil }
 func (e *StubClient) Account() accounts.Account                                       { return accounts.Account{} }
 func (e *StubClient) Backend() (*ethclient.Client, error)                             { return nil, ErrMissingBackend }
@@ -98,8 +102,18 @@ func (e *StubClient) GetDelegatorUnbondingLock(addr common.Address, unbondingLoc
 func (e *StubClient) GetTranscoderEarningsPoolForRound(addr common.Address, round *big.Int) (*lpTypes.TokenPools, error) {
 	return nil, nil
 }
-func (e *StubClient) RegisteredTranscoders() ([]*lpTypes.Transcoder, error) { return nil, nil }
-func (e *StubClient) IsActiveTranscoder() (bool, error)                     { return false, nil }
+func (e *StubClient) RegisteredTranscoders() ([]*lpTypes.Transcoder, error) {
+	var addresses = []string{"https://127.0.0.1:8936", "https://127.0.0.1:8937", "https://127.0.0.1:8938"}
+	var transcoders []*lpTypes.Transcoder
+
+	for _, addr := range addresses {
+		transc := &lpTypes.Transcoder{ServiceURI: addr}
+		transcoders = append(transcoders, transc)
+	}
+
+	return transcoders, nil
+}
+func (e *StubClient) IsActiveTranscoder() (bool, error) { return false, nil }
 func (e *StubClient) AssignedTranscoder(job *lpTypes.Job) (common.Address, error) {
 	return e.TranscoderAddress, nil
 }

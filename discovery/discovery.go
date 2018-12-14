@@ -21,7 +21,7 @@ type offchainOrchestrators struct {
 	bcast server.Broadcaster
 }
 
-func NewOffchainOrchestrator(node *core.LivepeerNode, addresses []string) *offchainOrchestrators {
+func NewOrchestratorPool(node *core.LivepeerNode, addresses []string) *offchainOrchestrators {
 	var uris []*url.URL
 
 	for _, addr := range addresses {
@@ -44,7 +44,7 @@ func NewOffchainOrchestrator(node *core.LivepeerNode, addresses []string) *offch
 	return &offchainOrchestrators{bcast: bcast, uri: uris}
 }
 
-func NewOffchainOrchestratorFromOnchainList(node *core.LivepeerNode) *offchainOrchestrators {
+func NewOnchainOrchestratorPool(node *core.LivepeerNode) *offchainOrchestrators {
 	// if livepeer running in offchain mode, return nil
 	if node.Eth == nil {
 		return nil
@@ -61,7 +61,7 @@ func NewOffchainOrchestratorFromOnchainList(node *core.LivepeerNode) *offchainOr
 		addresses = append(addresses, orch.ServiceURI)
 	}
 
-	return NewOffchainOrchestrator(node, addresses)
+	return NewOrchestratorPool(node, addresses)
 }
 
 func (o *offchainOrchestrators) GetOrchestrators(numOrchestrators int) ([]*net.OrchestratorInfo, error) {

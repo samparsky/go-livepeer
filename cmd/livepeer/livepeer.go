@@ -202,10 +202,10 @@ func main() {
 	}
 
 	if n.NodeType == core.BroadcasterNode {
-		if len(orchAddresses) <= 0 {
-			n.OrchestratorPool = discovery.NewOffchainOrchestratorFromOnchainList(n)
-		} else {
-			n.OrchestratorPool = discovery.NewOffchainOrchestrator(n, orchAddresses)
+		if len(orchAddresses) > 0 {
+			n.OrchestratorPool = discovery.NewOrchestratorPool(n, orchAddresses)
+		} else if !*offchain {
+			n.OrchestratorPool = discovery.NewOnchainOrchestratorPool(n)
 		}
 		if n.OrchestratorPool == nil {
 			glog.Errorf("No orchestrator specified; transcoding will not happen")

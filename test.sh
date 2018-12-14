@@ -30,6 +30,11 @@ go test -logtostderr=true
 t6=$?
 cd ..
 
+cd discovery
+go test -logtostderr=true
+t7=$?
+cd ..
+
 if (($t1!=0||$t2!=0||$t3!=0||$t4!=0||$t5!=0||$t6!=0))
 then
     printf "\n\nSome Tests Failed\n\n"
